@@ -10,7 +10,7 @@ Blurring strength throughout the image frame can be defined in one of two ways:
 
 2. A greyscale image can be used as a map of retinal ganglion cell (RGC) density distribution and therefore the blurring strength across the image frame. 
 
-![map example](/examples/map_ex.png)
+![map example](map_ex.png)
 
 The fixation point (center of gaze) can be displaced anywhere in the visual field. A real-time foveation demo is provided where the fixation point follows the mouse cursor (*demo1*). A second demo allows one to draw a greyscale RGC mapping before seeing it in action on a selected image (*demo2*). 
 
