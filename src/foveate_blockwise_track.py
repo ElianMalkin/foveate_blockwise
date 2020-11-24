@@ -1,18 +1,21 @@
+#!/usr/bin/env python
 import pycuda.driver as cuda
 import pycuda.autoinit
-import math
 from pycuda.compiler import SourceModule
-from PIL import Image
+from os import makedirs
+import math
 import numpy as np
 import cv2 as cv
 import sys
 import time
+import getopt
 
 # PARAMETERS:
 #______________________________________________
 
 # Image to foveate:
 image_name = 'marrakesh.jpg'
+image_loc = '../images/'
 
 # Display foveated image:
 show_img = True
@@ -29,8 +32,8 @@ save_illustration = False
 illu_name = 'illustration.png'
 
 # Image dimensions (leave as -1) for full image:
-W = 960
-H = 1439
+W = -1
+H = -1
 
 # Fixation point (in terms of image dimensions):
 fovx = W/2
@@ -110,12 +113,12 @@ def replication_pad(img, W, H, S, paddedW, paddedH):
 	return output
 
 
-def load_image():
+def load_image(image_loc, image_name):
 	# t0 = time.perf_counter()
 
 	#cv.resizeWindow('Input window', 600,600)
 	
-	img = cv.imread("marrakesh.jpg")
+	img = cv.imread(image_loc + image_name)
 	# W = 1000
 	# width, height, depth = img.shape
 	# imgscale = W/width
@@ -646,16 +649,54 @@ def mouse_capture(event, x, y, flags, param):
 		global fovy
 		fovx = x
 		fovy = y
+
+def usage():
+	print('Usage: python src/foveate_blockwise_track.py [options]')
+	print('Real-time image foveation transform using PyCuda - mouse tracking demo')
+	print('Options:')
+	print('-h, --help\t\t', 'Displays this help')
+	print('-f, --fragmentSize\t', 'Width and height of fragments for foveation, (e.g. "-f 16,16"), default: 32 x 32')
+	print('-i, --inputDir\t\t', 'Input image from "images" folder, default: "castle.jpg"')
 	
 def main():
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hi:f:', ['help','inputDir =','fragmentSize ='])
+	except getopt.GetoptError as err:
+		print(str(err))
+		usage()
+		sys.exit(2)
+
+	global fragmentW
+	global fragmentH
+	global image_name
+	global W
+	global H
+
+	for o, a in opts:
+		if o in ['-h', '--help']:
+			usage()
+			sys.exit(2)
+		if o in ['-i', '--inputDir']:
+			image_name = a
+		if o in ['-f', '--fragmentSize']:
+			fragmentW, fragmentH = tuple([int(x) for x in a.split(',')])
+
+	if fragmentW <= 8 and fragmentH <= 8:
+		threadsPerBlock = 128
+
+	#: For single image:
+	img = load_image(image_loc, image_name)
+	H = img.shape[0]
+	W = img.shape[1]
+
 	cv.namedWindow('Input window', cv.WINDOW_NORMAL)
 	cv.setMouseCallback('Input window', mouse_capture)
 
 	cv.namedWindow('Output window', cv.WINDOW_NORMAL)
 	# cv.namedWindow('Output window')
 
-	cv.resizeWindow("Input window", W, H)
-	cv.resizeWindow("Output window", W, H)
+	#cv.resizeWindow("Input window", W, H)
+	# cv.resizeWindow("Output window", W, H)
 
 	minDist = fragmentW/2
 	maxDist = np.sqrt((W/2)**2 + (H/2)**2)
@@ -683,12 +724,6 @@ def main():
 
 	img_gpu = cuda.mem_alloc(paddedW*paddedH*3)
 	img_pinned = cuda.pagelocked_empty((paddedH, paddedW, 3), np.uint8)
-
-
-	#: For single image:
-	img = load_image()
-	# H = img.shape[0]
-	# W = img.shape[1]
 
 	img_padded = replication_pad(img, W, H, S, paddedW, paddedH)
 	transfer_input_img(img_padded, img_pinned, img_gpu)

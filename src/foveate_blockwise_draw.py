@@ -1,18 +1,21 @@
+#!/usr/bin/env python
 import pycuda.driver as cuda
 import pycuda.autoinit
 import math
 from pycuda.compiler import SourceModule
-from PIL import Image
+from os import makedirs
 import numpy as np
 import cv2 as cv
 import sys
 import time
+import getopt
 
 # PARAMETERS:
 #______________________________________________
 
 # Image to foveate:
 image_name = 'marrakesh.jpg'
+image_loc = '../images/'
 
 # Display foveated image:
 show_img = True
@@ -29,8 +32,8 @@ save_illustration = False
 illu_name = 'illustration.png'
 
 # Image dimensions (leave as -1) for full image:
-W = 960
-H = 1439
+W = -1
+H = -1
 
 # Fixation point (in terms of image dimensions):
 fovx = W/2
@@ -114,12 +117,12 @@ def replication_pad(img, W, H, S, paddedW, paddedH):
 	return output
 
 
-def load_image():
+def load_image(image_loc, image_name):
 	# t0 = time.perf_counter()
 
 	#cv.resizeWindow('Input window', 600,600)
 	
-	img = cv.imread("marrakesh.jpg")
+	img = cv.imread(image_loc + image_name)
 	# W = 1000
 	# width, height, depth = img.shape
 	# imgscale = W/width
