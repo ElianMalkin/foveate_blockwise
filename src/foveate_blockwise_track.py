@@ -94,22 +94,7 @@ def calc_ker_size(sig):
 
 # Pads an image by replicating the edge pixels:
 def replication_pad(img, W, H, S, paddedW, paddedH):
-	# output = np.zeros((paddedH, paddedW, 3), dtype="uint8")
-
-	# output[:S, S:W+S, :] = img[0:1,:, :]
-	# output[S:H+S, :S, :] = img[:, 0:1, :]
-	# output[H+S:, S:W+S, :] = img[-1:,:, :]
-	# output[S:H+S, W+S:, :] = img[:, -1:, :]
-
-	# output[:S, :S, :] = img[0, 0, :]
-	# output[:S, paddedW-S:, :] = img[0, -1, :]
-	# output[paddedH-S:, :S, :] = img[-1, 0, :]
-	# output[paddedH-S:, paddedW-S:, :] = img[-1, -1, :]
-
-	# output[S:H+S, S:W+S, :] = img
 	output = cv.copyMakeBorder(img, S, S, S, S, cv.BORDER_REPLICATE)
-	# cv.imshow("Input window", output)
-	# k = cv.waitKey(0)
 	return output
 
 
@@ -593,23 +578,18 @@ def transfer_filters(sigma_l, mod):
 	cuda.memcpy_htod(k_c_pt, ker_cum)
 
 
-def run_foveation(mod, gridW, gridH, img_gpu, blur_grid_gpu, paddedW, paddedH, S, result_gpu, W, width_shift, height_shift, grid_shift_col, grid_shift_row):
-	func = mod.get_function("convolution")
-	func.prepare(("P", "P", "i", "i", "i", "i", "i", "P", "i", "i", "i", "i", "i", "i", "i"))
-
-	block=(threadsPerBlock, 1, 1)
-	grid = (gridW, gridH)
-
+def run_foveation(func, block, grid, gridW, gridH, img_gpu, blur_grid_gpu, paddedW, paddedH, S, result_gpu, W, width_shift, height_shift, grid_shift_col, grid_shift_row):
+	
 	# Warm Up - used to properly time kernel execution:
 	# for i in range(500):
 	# 	func.prepared_call(grid, block, img_gpu, blur_grid_gpu, paddedW, paddedH, np.int32(fragmentW), np.int32(fragmentH), np.int32(S), result_gpu, np.int32(W), np.int32(fovx), np.int32(fovy), width_shift, height_shift, grid_shift_col, grid_shift_row)
 	# cuda.Context.synchronize()
 
 
-	start=cuda.Event()
-	end=cuda.Event()
+	# start=cuda.Event()
+	# end=cuda.Event()
 
-	start.record() # start timing
+	# start.record() # start timing
 
 	# To time an average of 1000 runs:
 	# for i in range(1000):
@@ -620,9 +600,9 @@ def run_foveation(mod, gridW, gridH, img_gpu, blur_grid_gpu, paddedW, paddedH, S
 	func.prepared_call(grid, block, img_gpu, blur_grid_gpu, paddedW, paddedH, np.int32(fragmentW), np.int32(fragmentH), np.int32(S), result_gpu, np.int32(W), np.int32(fovx), np.int32(fovy), width_shift, height_shift, grid_shift_col, grid_shift_row)
 
 
-	end.record() # end timing
-	end.synchronize()
-	millis = start.time_till(end)
+	# end.record() # end timing
+	# end.synchronize()
+	# millis = start.time_till(end)
 
 	# For average timing:
 	# print("Time taken: " + str(millis/1000))
@@ -669,6 +649,7 @@ def main():
 	global fragmentW
 	global fragmentH
 	global image_name
+	global threadsPerBlock
 	global W
 	global H
 
@@ -684,19 +665,15 @@ def main():
 	if fragmentW <= 8 and fragmentH <= 8:
 		threadsPerBlock = 128
 
+	cv.namedWindow('Input window', cv.WINDOW_NORMAL)
+	cv.setMouseCallback('Input window', mouse_capture)
+
 	#: For single image:
 	img = load_image(image_loc, image_name)
 	H = img.shape[0]
 	W = img.shape[1]
 
-	cv.namedWindow('Input window', cv.WINDOW_NORMAL)
-	cv.setMouseCallback('Input window', mouse_capture)
-
 	cv.namedWindow('Output window', cv.WINDOW_NORMAL)
-	# cv.namedWindow('Output window')
-
-	#cv.resizeWindow("Input window", W, H)
-	# cv.resizeWindow("Output window", W, H)
 
 	minDist = fragmentW/2
 	maxDist = np.sqrt((W/2)**2 + (H/2)**2)
@@ -731,6 +708,12 @@ def main():
 	FPS_avg = 0
 	avg_count = 0
 	fps = None
+
+	func = mod.get_function("convolution")
+	func.prepare(("P", "P", "i", "i", "i", "i", "i", "P", "i", "i", "i", "i", "i", "i", "i"))
+
+	block=(threadsPerBlock, 1, 1)
+
 	while(1):
 		t0 = time.perf_counter()
            
@@ -753,8 +736,10 @@ def main():
 	
 		gridW = math.floor(W/fragmentW) + plus_blocks_w
 		gridH = math.floor(H/fragmentH) + plus_blocks_h
+
+		grid = (gridW, gridH)
 	
-		run_foveation(mod, gridW, gridH, img_gpu, blur_grid_gpu, np.int32(paddedW), np.int32(paddedH), S, result_gpu, W, width_shift, height_shift, grid_shift_col, grid_shift_row)
+		run_foveation(func, block, grid, gridW, gridH, img_gpu, blur_grid_gpu, np.int32(paddedW), np.int32(paddedH), S, result_gpu, W, width_shift, height_shift, grid_shift_col, grid_shift_row)
 		transfer_result(host_output, result_gpu)
 		
 		t1 = time.perf_counter()
@@ -764,7 +749,7 @@ def main():
 
 		if avg_count >= 50:
 			fps = FPS_avg/avg_count
-			print("FPS: ", fps)
+			#print("FPS: ", fps)
 			FPS_avg = 0
 			avg_count = 0
 

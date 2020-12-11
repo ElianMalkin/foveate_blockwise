@@ -3,6 +3,7 @@ import pycuda.driver as cuda
 import pycuda.autoinit
 from pycuda.compiler import SourceModule
 from os import makedirs
+from PIL import Image
 import math
 import numpy as np
 import cv2 as cv
@@ -496,15 +497,15 @@ def usage():
 	print('Real-time image foveation transform using PyCuda')
 	print('Options:')
 	print('-h, --help\t\t', 'Displays this help')
-	print('-p, --gazePosition\t', 'Gaze position coords, (vertical down) then (horizontal right), (e.g. "-p 512,512"), default: center of the image')
+	print('-p, --gazePosition\t', 'Gaze position coordinates, (vertical down) then (horizontal right), (e.g. "-p 512,512"), default: center of the image')
 	print('-f, --fragmentSize\t', 'Width and height of fragments for foveation, (e.g. "-f 16,16"), default: 32 x 32')
 	print('-v, --visualize\t\t', 'Show foveated images')
-	print('-i, --inputDir\t\t', 'Input image from "images" folder, default: "castle.jpg"')
+	print('-i, --inputFile\t\t', 'Input image from "images" folder, default: "castle.jpg"')
 	print('-o, --outputDir\t\t', 'Output directory and filename')
 
 def main():
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hp:vi:o:f:', ['help', 'gazePosition =', 'visualize', 'inputDir =', 'outputDir =', 'fragmentSize ='])
+		opts, args = getopt.getopt(sys.argv[1:], 'hp:vi:o:f:', ['help', 'gazePosition =', 'visualize', 'inputFile =', 'outputDir =', 'fragmentSize ='])
 	except getopt.GetoptError as err:
 		print(str(err))
 		usage()
@@ -544,7 +545,7 @@ def main():
 			show_img = True
 		if o in ['-p', '--gazePosition']:
 			fovy, fovx = tuple([float(x) for x in a.split(',')])
-		if o in ['-i', '--inputDir']:
+		if o in ['-i', '--inputFile']:
 			image_name = a
 		if o in ['-o', '--outputDir']:
 			outputDir = "../" + a
@@ -554,8 +555,6 @@ def main():
 
 	if fragmentW <= 8 and fragmentH <= 8:
 		threadsPerBlock = 128
-
-	cv.namedWindow('Output window', cv.WINDOW_NORMAL)
 
 	img = load_image(image_loc, image_name, W, H)
 	H = img.shape[0]
@@ -593,8 +592,7 @@ def main():
 	transfer_result(host_output, result_gpu)
 
 	if show_img:
-		cv.imshow("Output window", host_output)
-		cv.waitKey(0)
+		Image.fromarray(host_output[:,:,::-1], 'RGB').show()
 
 	if save_img:
 		makedirs(outputDir.rpartition('/')[0], exist_ok=True)

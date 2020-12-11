@@ -32,16 +32,16 @@ save_illustration = False
 illu_name = 'illustration.png'
 
 # Image dimensions (leave as -1) for full image:
-W = -1
-H = -1
+W = 960
+H = 1439
 
 # Fixation point (in terms of image dimensions):
 fovx = W/2
 fovy = H/2
 
 # Fragment size (square pieces of image):
-fragmentW = 32
-fragmentH = 32
+fragmentW = 16
+fragmentH = 16
 
 # Contrast Sensitivity Function parameters:
 e2 = 2.3
@@ -52,7 +52,7 @@ CT_0 = 0.0133
 max_ecc = 100
 
 # Maximum cycles per degree of the mapped retina (setting at 30 for human):
-max_cyc_per_deg = 30
+max_cyc_per_deg = 50
 
 # Launch CUDA kernel with this many threads per block (affects execution speed):
 threadsPerBlock = 256
@@ -340,7 +340,7 @@ def make_kernel(S, num_regions):
 	mod = SourceModule("""
 	#include "stdint.h"
 
-	const unsigned int MAX_FILTER_SIZE = 10000;
+	const unsigned int MAX_FILTER_SIZE = 15000;
 
 	const unsigned int NUM_REGIONS = """ + str(num_regions) + """;
 
@@ -841,6 +841,8 @@ def make_sigmas_map(ordered_b):
 
 	
 def main():
+	global H
+	global W
 	# Blurmap initial blend:
 	retina = draw_retina()
 
@@ -913,9 +915,9 @@ def main():
 	# img_pinned = cuda.pagelocked_empty_like(img_padded)
 
 	#: For single image:
-	img = load_image()
-	# H = img.shape[0]
-	# W = img.shape[1]
+	img = load_image(image_loc, image_name)
+	H = img.shape[0]
+	W = img.shape[1]
 
 	img_gpu = cuda.mem_alloc(paddedW*paddedH*3)
 	img_pinned = cuda.pagelocked_empty((paddedH, paddedW, 3), np.uint8)
