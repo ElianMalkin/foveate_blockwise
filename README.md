@@ -13,7 +13,12 @@ Blurring strength throughout the image frame can be defined in one of two ways:
 *Example of greyscale RGC map and its foveation transform:*
 ![map example](docs/images/map_ex.png)
 
-The fixation point (center of gaze) can be displaced anywhere in the visual field. A real-time foveation demo is provided where the fixation point follows the mouse cursor (*demo1*). A second demo allows one to draw a greyscale RGC mapping before seeing it in action on a selected image (*demo2*). 
+The fixation point (center of gaze) can be displaced anywhere in the visual field. 
+
+We provide two demos:
+
+1. **foveate_blockwise_track.py:** A real-time foveation demo where the fixation point follows the mouse cursor. 
+2. **foveate_blockwise_draw.py:** Similar to the tracking demo, but the user first draws a greyscale RGC mapping before seeing it in action on an image. 
 
 More information, including a detailed algorithm description and suggestions for modifications, is available here.
 
@@ -21,6 +26,37 @@ More information, including a detailed algorithm description and suggestions for
 
 This implementation requires the [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit), [PyCUDA wrapper](https://pypi.org/project/pycuda/), and [OpenCV-Python](https://docs.opencv.org/master/da/df6/tutorial_py_table_of_contents_setup.html).
 
+The PyCUDA wrapper and OpenCV-Python package can be installed using pip:
+
+```
+pip install -r requirements.txt
+```
+
 ## Run
 
-How to run demo
+To foveate a single image:
+```
+python src/foveate_blockwise.py -v
+```
+To foveate and save a particular image, place it in the *images* directory, then specify its name with the `-i` parameter. To save the image use the `-o` option, and provide the output directory and filename:
+```
+python src/foveate_blockwise.py -i my_image.jpg -o output/fov_image.png
+```
+
+To run the tracking demo:
+```
+python src/foveate_blockwise_track.py 
+```
+To run the drawing demo:
+```
+python src/foveate_blockwise_draw.py
+```
+
+Other available options for each file can be found with the `-h` parameter:
+
+* `-h, --help`:          Displays help
+* `-p, --gazePosition`:  Gaze position coordinates, (vertical down) then (horizontal right), (e.g. `-p 512,512`)
+* `-f, --fragmentSize`:  Width and height of fragments for foveation, (e.g. `-f 16,16`), default: 32 x 32
+* `-v, --visualize`:     Show foveated images
+* `-i, --inputFile`:     Input image from "images" folder
+* `-o, --outputDir`:     Output directory and filename
