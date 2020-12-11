@@ -10,7 +10,13 @@ See it in action: https://youtu.be/Rr5oaiIsVbA
 
 ![blockwise_approach](docs/images/blockwise_approach.png)
 
+Our visual field is non-uniform. Acuity is high at the fovea, where cone photoreceptors are closely packed, allowing us to discern fine details. Cone density drops off sharply towards the periphery, giving us lower spatial acuity but greater awareness of our surroundings with a wide field of view. 
 
+Block-wise foveation enables real-time experimentation with spatial frequency models of human or animal retinas. It is built around the CUDA architecture, utilizing the parallel processing power of the GPU to perform spatially-variant Gaussian blur on the image frame. 
+
+Eye trackers enable us to discern the fixation point of the user and allocate resources appropriately, be it the rendering workload in virtual reality applications, or compression strength for streaming video. The flexibility and real-time performance of block-wise foveation supports psychophysical experiments to determine the parameters of a foveation pipeline, and serves as a showcase of the suitability of the CUDA architecture for GPU-accelerated foveation. 
+
+## Getting Started
 
 Blurring strength throughout the image frame can be defined in one of two ways:
 
@@ -18,14 +24,14 @@ Blurring strength throughout the image frame can be defined in one of two ways:
 
 2. A greyscale image can be used as a map of retinal ganglion cell (RGC) density distribution and therefore the blurring strength across the image frame. 
 
-*Example of greyscale RGC map and its foveation transform:*
-![map example](docs/images/map_ex.png)
+*Example of greyscale RGC maps and their foveation transforms:*
+![map example](docs/images/rgc_mosaic_env.png)
 
 The fixation point (center of gaze) can be displaced anywhere in the visual field. 
 
 We provide three files:
 
-1. **foveate_blockwise.py** Foveates and displays/saves a single image from the `/images` directory. 
+1. **foveate_blockwise.py:** Foveates and displays/saves a single image from the `/images` directory. 
 2. **foveate_blockwise_track.py:** A real-time foveation demo where the fixation point follows the mouse cursor. 
 3. **foveate_blockwise_draw.py:** Similar to the tracking demo, but the user first draws a greyscale RGC mapping before seeing it in action on an image. 
 <!--More information, including a detailed algorithm description and suggestions for modifications, is available here.-->
@@ -33,6 +39,7 @@ We provide three files:
 ## Install
 
 This implementation requires the [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) and [PyCUDA wrapper](https://pypi.org/project/pycuda/).
+
 PyCUDA and other requirements can be installed using pip:
 
 ```
@@ -45,7 +52,7 @@ To foveate a single image:
 ```
 python src/foveate_blockwise.py -v
 ```
-To foveate and save a particular image, place it in the *images* directory, then specify its name with the `-i` parameter. To save the image use the `-o` option, and provide the output directory and filename:
+To foveate and save a particular image, place it in the `/images` directory, then specify its name with the `-i` parameter. To save the image use the `-o` option, and provide the output directory and filename:
 ```
 python src/foveate_blockwise.py -i my_image.jpg -o output/fov_image.png
 ```
