@@ -79,13 +79,13 @@ Other available options for each file can be found with the `-h` parameter:
 
 If you found this code useful, consider citing:
 ```
-@misc{BlockwiseFoveation,
+@article{BlockwiseFoveation,
 author = {Malkin, Elian and Deza, Arturo and Poggio, Tomaso},
 title = {{CUDA}-{Optimized} real-time rendering of a {Foveated} {Visual} {System}}
 year = {2020},
-publisher = {GitHub},
-journal = {GitHub repository},
-howpublished = {\url{https://github.com/ElianMalkin/foveate_blockwise}}
+publisher = {OpenReview},
+journal = {Shared Visual Representations in Human & Machine Intelligence},
+howpublished = {\url{https://openreview.net/forum?id=ZMsqkUadtZ7}}
 }
 ```
 
