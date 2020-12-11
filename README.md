@@ -1,8 +1,16 @@
 # foveate_blockwise
 ## Real-time image and video foveation transform using PyCUDA 
 
-Foveation implementation using adaptive Gaussian blurring optimized for real-time performance, as described in *link*. 
+Foveation implementation using adaptive Gaussian blurring optimized for real-time performance. 
 The algorithm exploits the CUDA architecture to generate the foveated image in blocks of varying blurring strength. 
+
+See it in action: https://youtu.be/Rr5oaiIsVbA
+
+## What is Block-wise Foveation? 
+
+![blockwise_approach](docs/images/blockwise_approach.png)
+
+
 
 Blurring strength throughout the image frame can be defined in one of two ways:
 
@@ -15,18 +23,17 @@ Blurring strength throughout the image frame can be defined in one of two ways:
 
 The fixation point (center of gaze) can be displaced anywhere in the visual field. 
 
-We provide two demos:
+We provide three files:
 
-1. **foveate_blockwise_track.py:** A real-time foveation demo where the fixation point follows the mouse cursor. 
-2. **foveate_blockwise_draw.py:** Similar to the tracking demo, but the user first draws a greyscale RGC mapping before seeing it in action on an image. 
-
-More information, including a detailed algorithm description and suggestions for modifications, is available here.
+1. **foveate_blockwise.py** Foveates and displays/saves a single image from the `/images` directory. 
+2. **foveate_blockwise_track.py:** A real-time foveation demo where the fixation point follows the mouse cursor. 
+3. **foveate_blockwise_draw.py:** Similar to the tracking demo, but the user first draws a greyscale RGC mapping before seeing it in action on an image. 
+<!--More information, including a detailed algorithm description and suggestions for modifications, is available here.-->
 
 ## Install
 
-This implementation requires the [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit), [PyCUDA wrapper](https://pypi.org/project/pycuda/), and [OpenCV-Python](https://docs.opencv.org/master/da/df6/tutorial_py_table_of_contents_setup.html).
-
-The PyCUDA wrapper and OpenCV-Python package can be installed using pip:
+This implementation requires the [CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) and [PyCUDA wrapper](https://pypi.org/project/pycuda/).
+PyCUDA and other requirements can be installed using pip:
 
 ```
 pip install -r requirements.txt
@@ -60,3 +67,22 @@ Other available options for each file can be found with the `-h` parameter:
 * `-v, --visualize`:     Show foveated images
 * `-i, --inputFile`:     Input image from "images" folder
 * `-o, --outputDir`:     Output directory and filename
+
+## Citation
+
+If you found this code useful, consider citing:
+```
+@misc{BlockwiseFoveation,
+author = {Malkin, Elian and Deza, Arturo and Poggio, Tomaso},
+title = {{CUDA}-{Optimized} real-time rendering of a {Foveated} {Visual} {System}}
+year = {2020},
+publisher = {GitHub},
+journal = {GitHub repository},
+howpublished = {\url{https://github.com/ElianMalkin/foveate_blockwise}}
+}
+```
+
+## License 
+
+MIT License.
+
